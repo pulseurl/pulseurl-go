@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package pulseurl;
+
+option go_package = "github.com/pulseurl/pulseurl-go/proto";
+
+import "google/protobuf/timestamp.proto";
+
+// TrafficLogger service for logging traffic events
+service TrafficLogger {
+  // LogEvent logs a single traffic event
+  rpc LogEvent(TrafficEvent) returns (Ack);
+
+  // LogEventBatch logs multiple events in a stream (for future use)
+  rpc LogEventBatch(stream TrafficEvent) returns (Ack);
+}
+
+// TrafficEvent represents a single HTTP/gRPC traffic event
+message TrafficEvent {
+  google.protobuf.Timestamp timestamp = 1;
+  string pod_id = 2;
+  string namespace = 3;
+  string url = 4;
+  string route = 5;
+  string http_method = 6;
+  int32 status_code = 7;
+  int32 duration_ms = 8;
+  string client_ip = 9;
+  string user_agent = 10;
+  map<string, string> custom_labels = 11;
+}
+
+// Ack is the acknowledgment response
+message Ack {
+  bool success = 1;
+  string message = 2;
+}

@@ -1,0 +1,133 @@
+package main
+
+import (
+	"log"
+	"os"
+
+	"github.com/gin-gonic/gin"
+	"github.com/pulseurl/pulseurl-go/client"
+	"github.com/pulseurl/pulseurl-go/middleware"
+)
+
+func main() {
+	// Get PulseURL service URL from environment or use default
+	serviceURL := os.Getenv("PULSEURL_SERVICE")
+	if serviceURL == "" {
+		serviceURL = "pulseurl:9090"
+	}
+
+	// Create PulseURL client
+	pulseClient, err := client.New(serviceURL, &client.Options{
+		BufferSize: 1000,
+		SampleRate: 1.0, // Log 100% of requests
+	})
+	if err != nil {
+		log.Fatalf("Failed to create PulseURL client: %v", err)
+	}
+	defer pulseClient.Close()
+
+	// Get service metadata from environment
+	serviceName := os.Getenv("SERVICE_NAME")
+	if serviceName == "" {
+		serviceName = "pulseurl-gin-example"
+	}
+
+	namespace := os.Getenv("NAMESPACE")
+	if namespace == "" {
+		namespace = "default"
+	}
+
+	environment := os.Getenv("ENVIRONMENT")
+	if environment == "" {
+		environment = "production"
+	}
+
+	// Create Gin router
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.New()
+	router.Use(gin.Recovery())
+
+	// Add PulseURL middleware
+	router.Use(middleware.New(middleware.Config{
+		Client: pulseClient,
+		SkipPaths: []string{
+			"/health",
+			"/ready",
+		},
+		CustomLabels: map[string]string{
+			"app":         serviceName,
+			"environment": environment,
+		},
+		ServiceName: serviceName,
+		Namespace:   namespace,
+	}))
+
+	// Health check endpoint (not logged)
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "healthy",
+		})
+	})
+
+	// Readiness check endpoint (not logged)
+	router.GET("/ready", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "ready",
+		})
+	})
+
+	// Example API routes (will be logged)
+	router.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message":     "Hello from PulseURL Gin example!",
+			"service":     serviceName,
+			"namespace":   namespace,
+			"environment": environment,
+		})
+	})
+
+	router.GET("/api/users", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"users": []map[string]string{
+				{"id": "1", "name": "Alice"},
+				{"id": "2", "name": "Bob"},
+				{"id": "3", "name": "Charlie"},
+			},
+		})
+	})
+
+	router.GET("/api/users/:id", func(c *gin.Context) {
+		id := c.Param("id")
+		c.JSON(200, gin.H{
+			"id":   id,
+			"name": "User " + id,
+		})
+	})
+
+	router.POST("/api/users", func(c *gin.Context) {
+		c.JSON(201, gin.H{
+			"message": "User created",
+		})
+	})
+
+	router.GET("/api/stats", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"requests": 12345,
+			"uptime":   "24h",
+		})
+	})
+
+	// Start server
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("Starting %s on :%s", serviceName, port)
+	log.Printf("PulseURL service: %s", serviceURL)
+	log.Printf("Namespace: %s, Environment: %s", namespace, environment)
+
+	if err := router.Run(":" + port); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
+}
