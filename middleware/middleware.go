@@ -39,15 +39,23 @@ func New(config Config) gin.HandlerFunc {
 		logger = slog.Default()
 	}
 
-	// Set default service name to hostname if not provided
+	// Set default service name and pod ID
 	serviceName := config.ServiceName
-	if serviceName == "" {
-		if hostname, err := os.Hostname(); err == nil {
-			serviceName = hostname
-		} else {
-			serviceName = "unknown"
-		}
+	podID := ""
+
+	// Get hostname (typically the pod name in Kubernetes)
+	hostname, err := os.Hostname()
+	if err != nil {
+		hostname = "unknown"
 	}
+
+	// If ServiceName not provided, use hostname as both service and pod
+	if serviceName == "" {
+		serviceName = hostname
+	}
+
+	// Pod ID is always the hostname (pod name in K8s)
+	podID = hostname
 
 	// Create skip path lookup map for O(1) lookup
 	skipPathMap := make(map[string]bool)
@@ -75,7 +83,8 @@ func New(config Config) gin.HandlerFunc {
 		// Build traffic event
 		event := &proto.TrafficEvent{
 			Timestamp:    timestamppb.New(start),
-			PodId:        serviceName,
+			Service:      serviceName,
+			PodId:        podID,
 			Namespace:    config.Namespace,
 			Url:          path,
 			Route:        c.FullPath(), // Gin route pattern (e.g., /users/:id)

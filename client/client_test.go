@@ -67,6 +67,7 @@ func TestEventToProto(t *testing.T) {
 	now := time.Now()
 	event := &Event{
 		Timestamp:  now,
+		Service:    "test-service",
 		PodID:      "pod-123",
 		Namespace:  "default",
 		URL:        "/test",
@@ -82,6 +83,10 @@ func TestEventToProto(t *testing.T) {
 	}
 
 	protoEvent := event.ToProto()
+
+	if protoEvent.Service != "test-service" {
+		t.Errorf("Expected Service 'test-service', got '%s'", protoEvent.Service)
+	}
 
 	if protoEvent.PodId != "pod-123" {
 		t.Errorf("Expected PodId 'pod-123', got '%s'", protoEvent.PodId)

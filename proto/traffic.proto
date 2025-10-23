@@ -18,16 +18,17 @@ service TrafficLogger {
 // TrafficEvent represents a single HTTP/gRPC traffic event
 message TrafficEvent {
   google.protobuf.Timestamp timestamp = 1;
-  string pod_id = 2;
-  string namespace = 3;
-  string url = 4;
-  string route = 5;
-  string http_method = 6;
-  int32 status_code = 7;
-  int32 duration_ms = 8;
-  string client_ip = 9;
-  string user_agent = 10;
-  map<string, string> custom_labels = 11;
+  string service = 2;
+  string pod_id = 3;
+  string namespace = 4;
+  string url = 5;
+  string route = 6;
+  string http_method = 7;
+  int32 status_code = 8;
+  int32 duration_ms = 9;
+  string client_ip = 10;
+  string user_agent = 11;
+  map<string, string> custom_labels = 12;
 }
 
 // Ack is the acknowledgment response

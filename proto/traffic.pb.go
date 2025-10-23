@@ -26,16 +26,17 @@ const (
 type TrafficEvent struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Timestamp     *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	PodId         string                 `protobuf:"bytes,2,opt,name=pod_id,json=podId,proto3" json:"pod_id,omitempty"`
-	Namespace     string                 `protobuf:"bytes,3,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	Url           string                 `protobuf:"bytes,4,opt,name=url,proto3" json:"url,omitempty"`
-	Route         string                 `protobuf:"bytes,5,opt,name=route,proto3" json:"route,omitempty"`
-	HttpMethod    string                 `protobuf:"bytes,6,opt,name=http_method,json=httpMethod,proto3" json:"http_method,omitempty"`
-	StatusCode    int32                  `protobuf:"varint,7,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
-	DurationMs    int32                  `protobuf:"varint,8,opt,name=duration_ms,json=durationMs,proto3" json:"duration_ms,omitempty"`
-	ClientIp      string                 `protobuf:"bytes,9,opt,name=client_ip,json=clientIp,proto3" json:"client_ip,omitempty"`
-	UserAgent     string                 `protobuf:"bytes,10,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
-	CustomLabels  map[string]string      `protobuf:"bytes,11,rep,name=custom_labels,json=customLabels,proto3" json:"custom_labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Service       string                 `protobuf:"bytes,2,opt,name=service,proto3" json:"service,omitempty"`
+	PodId         string                 `protobuf:"bytes,3,opt,name=pod_id,json=podId,proto3" json:"pod_id,omitempty"`
+	Namespace     string                 `protobuf:"bytes,4,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Url           string                 `protobuf:"bytes,5,opt,name=url,proto3" json:"url,omitempty"`
+	Route         string                 `protobuf:"bytes,6,opt,name=route,proto3" json:"route,omitempty"`
+	HttpMethod    string                 `protobuf:"bytes,7,opt,name=http_method,json=httpMethod,proto3" json:"http_method,omitempty"`
+	StatusCode    int32                  `protobuf:"varint,8,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
+	DurationMs    int32                  `protobuf:"varint,9,opt,name=duration_ms,json=durationMs,proto3" json:"duration_ms,omitempty"`
+	ClientIp      string                 `protobuf:"bytes,10,opt,name=client_ip,json=clientIp,proto3" json:"client_ip,omitempty"`
+	UserAgent     string                 `protobuf:"bytes,11,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	CustomLabels  map[string]string      `protobuf:"bytes,12,rep,name=custom_labels,json=customLabels,proto3" json:"custom_labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -75,6 +76,13 @@ func (x *TrafficEvent) GetTimestamp() *timestamppb.Timestamp {
 		return x.Timestamp
 	}
 	return nil
+}
+
+func (x *TrafficEvent) GetService() string {
+	if x != nil {
+		return x.Service
+	}
+	return ""
 }
 
 func (x *TrafficEvent) GetPodId() string {
@@ -204,24 +212,25 @@ var File_proto_traffic_proto protoreflect.FileDescriptor
 
 const file_proto_traffic_proto_rawDesc = "" +
 	"\n" +
-	"\x13proto/traffic.proto\x12\bpulseurl\x1a\x1fgoogle/protobuf/timestamp.proto\"\xd4\x03\n" +
+	"\x13proto/traffic.proto\x12\bpulseurl\x1a\x1fgoogle/protobuf/timestamp.proto\"\xee\x03\n" +
 	"\fTrafficEvent\x128\n" +
-	"\ttimestamp\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12\x15\n" +
-	"\x06pod_id\x18\x02 \x01(\tR\x05podId\x12\x1c\n" +
-	"\tnamespace\x18\x03 \x01(\tR\tnamespace\x12\x10\n" +
-	"\x03url\x18\x04 \x01(\tR\x03url\x12\x14\n" +
-	"\x05route\x18\x05 \x01(\tR\x05route\x12\x1f\n" +
-	"\vhttp_method\x18\x06 \x01(\tR\n" +
+	"\ttimestamp\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12\x18\n" +
+	"\aservice\x18\x02 \x01(\tR\aservice\x12\x15\n" +
+	"\x06pod_id\x18\x03 \x01(\tR\x05podId\x12\x1c\n" +
+	"\tnamespace\x18\x04 \x01(\tR\tnamespace\x12\x10\n" +
+	"\x03url\x18\x05 \x01(\tR\x03url\x12\x14\n" +
+	"\x05route\x18\x06 \x01(\tR\x05route\x12\x1f\n" +
+	"\vhttp_method\x18\a \x01(\tR\n" +
 	"httpMethod\x12\x1f\n" +
-	"\vstatus_code\x18\a \x01(\x05R\n" +
+	"\vstatus_code\x18\b \x01(\x05R\n" +
 	"statusCode\x12\x1f\n" +
-	"\vduration_ms\x18\b \x01(\x05R\n" +
+	"\vduration_ms\x18\t \x01(\x05R\n" +
 	"durationMs\x12\x1b\n" +
-	"\tclient_ip\x18\t \x01(\tR\bclientIp\x12\x1d\n" +
+	"\tclient_ip\x18\n" +
+	" \x01(\tR\bclientIp\x12\x1d\n" +
 	"\n" +
-	"user_agent\x18\n" +
-	" \x01(\tR\tuserAgent\x12M\n" +
-	"\rcustom_labels\x18\v \x03(\v2(.pulseurl.TrafficEvent.CustomLabelsEntryR\fcustomLabels\x1a?\n" +
+	"user_agent\x18\v \x01(\tR\tuserAgent\x12M\n" +
+	"\rcustom_labels\x18\f \x03(\v2(.pulseurl.TrafficEvent.CustomLabelsEntryR\fcustomLabels\x1a?\n" +
 	"\x11CustomLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"9\n" +

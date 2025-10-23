@@ -184,6 +184,7 @@ func (c *Client) Close() error {
 // Event is a convenience struct for building TrafficEvent protobuf messages
 type Event struct {
 	Timestamp    time.Time
+	Service      string
 	PodID        string
 	Namespace    string
 	URL          string
@@ -200,6 +201,7 @@ type Event struct {
 func (e *Event) ToProto() *proto.TrafficEvent {
 	return &proto.TrafficEvent{
 		Timestamp:    timestamppb.New(e.Timestamp),
+		Service:      e.Service,
 		PodId:        e.PodID,
 		Namespace:    e.Namespace,
 		Url:          e.URL,
