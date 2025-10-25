@@ -72,16 +72,26 @@ func New(serviceURL string, opts ...*Options) (*Client, error) {
 func (c *Client) LogEvent(event *proto.TrafficEvent) {
 	// Apply sampling
 	if c.opts.SampleRate < 1.0 && rand.Float64() > c.opts.SampleRate {
+		c.logger.Debug("event sampled out",
+			"sample_rate", c.opts.SampleRate,
+			"url", event.Url,
+			"method", event.HttpMethod)
 		return
 	}
 
 	// Non-blocking send
 	select {
 	case c.eventChan <- event:
-		// Event queued successfully
+		c.logger.Debug("event queued",
+			"buffer_usage", len(c.eventChan),
+			"buffer_capacity", cap(c.eventChan),
+			"url", event.Url,
+			"method", event.HttpMethod)
 	default:
 		// Buffer full, drop event
-		c.logger.Warn("event buffer full, dropping event")
+		c.logger.Warn("event buffer full, dropping event",
+			"url", event.Url,
+			"method", event.HttpMethod)
 	}
 }
 
@@ -152,6 +162,10 @@ func (c *Client) sendEvent(ctx context.Context, event *proto.TrafficEvent) error
 
 		_, err := c.grpcClient.LogEvent(ctx, event)
 		if err == nil {
+			c.logger.Debug("event sent to PulseURL",
+				"url", event.Url,
+				"method", event.HttpMethod,
+				"status", event.StatusCode)
 			return nil
 		}
 
@@ -179,6 +193,11 @@ func (c *Client) Close() error {
 
 	c.logger.Info("PulseURL client closed")
 	return nil
+}
+
+// Logger returns the client's logger instance
+func (c *Client) Logger() *slog.Logger {
+	return c.logger
 }
 
 // Event is a convenience struct for building TrafficEvent protobuf messages

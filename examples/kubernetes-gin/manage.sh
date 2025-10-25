@@ -18,6 +18,9 @@ ENVIRONMENT="${ENVIRONMENT:-production}"
 # Service port
 HTTP_PORT="${HTTP_PORT:-8080}"
 
+# Debug logging
+PULSEURL_DEBUG="${PULSEURL_DEBUG:-false}"
+
 # Colors for output
 readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
@@ -130,7 +133,7 @@ cmd_k8s_deploy() {
 
     # Generate manifests with environment substitution
     export FULL_IMAGE=$(get_full_image)
-    export PULSEURL_SERVICE SERVICE_NAME ENVIRONMENT HTTP_PORT
+    export PULSEURL_SERVICE SERVICE_NAME ENVIRONMENT HTTP_PORT PULSEURL_DEBUG
 
     # Check if k8s directory exists
     if [ ! -d "$SCRIPT_DIR/k8s" ]; then

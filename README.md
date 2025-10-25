@@ -225,20 +225,64 @@ The examples support these environment variables:
 
 ## Testing
 
-```bash
-# Run tests
-go test ./...
+### Unit Tests
 
-# Run tests with coverage
-go test ./... -cover
+```bash
+# Run all tests
+go test ./... -cover 2>&1 | grep -E "(PASS|FAIL|coverage|ok)"
 
 # Run tests with verbose output
-go test ./... -v
+go test -v ./client 2>&1 | head -50
+
+# Run specific package tests
+go test ./client -cover
+go test ./middleware -cover
 ```
 
 Current test coverage:
-- Client: >90%
-- Middleware: >90%
+- Client: 88.8%
+- Middleware: 96.4%
+
+### End-to-End Testing in Kubernetes
+
+For comprehensive E2E testing in Kubernetes environments, see the [kubernetes-gin example](./examples/kubernetes-gin).
+
+**Quick Start:**
+
+```bash
+cd examples/kubernetes-gin
+
+# Deploy with debug logging enabled
+PULSEURL_DEBUG=true NAMESPACE=test ./manage.sh k8s-deploy
+
+# Run test scenarios
+./test-middleware.sh --namespace test
+
+# Analyze logs and validate behavior
+./analyze-logs.sh --namespace test --report results.txt
+```
+
+**Test Scenarios:**
+- ✓ Baseline operation (normal traffic)
+- ✓ URL filtering (/health, /ready skipped)
+- ✓ Service identification (metadata validation)
+- ✓ Concurrent load handling
+- ✓ Sampling behavior (requires config)
+- ✓ Buffer overflow (requires config)
+
+**Debug Logging:**
+
+Enable verbose debug output for troubleshooting:
+
+```bash
+# In Kubernetes
+kubectl set env deployment/app PULSEURL_DEBUG=true -n namespace
+
+# Locally
+PULSEURL_DEBUG=true go run main.go
+```
+
+For detailed testing documentation, see [docs/TESTING.md](./docs/TESTING.md).
 
 ## Development
 

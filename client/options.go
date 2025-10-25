@@ -2,6 +2,7 @@ package client
 
 import (
 	"log/slog"
+	"os"
 	"time"
 )
 
@@ -32,6 +33,11 @@ type Options struct {
 	// MaxRetries for failed requests
 	// Default: 2
 	MaxRetries int
+
+	// DebugLogging enables verbose debug output for troubleshooting.
+	// If true and Logger is nil, a debug-level logger will be created automatically.
+	// Default: false
+	DebugLogging bool
 }
 
 // DefaultOptions returns options with sensible defaults
@@ -44,13 +50,20 @@ func DefaultOptions() *Options {
 		Timeout:       2 * time.Second,
 		SampleRate:    1.0,
 		MaxRetries:    2,
+		DebugLogging:  false,
 	}
 }
 
 // applyDefaults fills in any missing options with defaults
 func (o *Options) applyDefaults() {
 	if o.Logger == nil {
-		o.Logger = slog.Default()
+		level := slog.LevelInfo
+		if o.DebugLogging {
+			level = slog.LevelDebug
+		}
+		o.Logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+			Level: level,
+		}))
 	}
 	if o.BufferSize == 0 {
 		o.BufferSize = 1000

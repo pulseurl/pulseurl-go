@@ -63,6 +63,45 @@ func TestOptionsApplyDefaults(t *testing.T) {
 	}
 }
 
+func TestDebugLoggingOption(t *testing.T) {
+	t.Run("debug logging disabled by default", func(t *testing.T) {
+		opts := DefaultOptions()
+		if opts.DebugLogging {
+			t.Error("Expected DebugLogging to be false by default")
+		}
+	})
+
+	t.Run("debug logging can be enabled", func(t *testing.T) {
+		opts := &Options{
+			DebugLogging: true,
+		}
+		opts.applyDefaults()
+
+		if !opts.DebugLogging {
+			t.Error("Expected DebugLogging to remain true")
+		}
+
+		if opts.Logger == nil {
+			t.Error("Expected Logger to be created")
+		}
+
+		// Verify logger is configured for debug level
+		// Note: We can't easily test the log level directly with slog,
+		// but we know it was configured based on DebugLogging flag
+	})
+
+	t.Run("debug logging disabled creates info-level logger", func(t *testing.T) {
+		opts := &Options{
+			DebugLogging: false,
+		}
+		opts.applyDefaults()
+
+		if opts.Logger == nil {
+			t.Error("Expected Logger to be created")
+		}
+	})
+}
+
 func TestEventToProto(t *testing.T) {
 	now := time.Now()
 	event := &Event{

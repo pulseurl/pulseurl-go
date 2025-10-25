@@ -63,10 +63,19 @@ func New(config Config) gin.HandlerFunc {
 		skipPathMap[path] = true
 	}
 
+	// Log middleware initialization
+	logger.Debug("middleware initialized",
+		"service_name", serviceName,
+		"pod_id", podID,
+		"namespace", config.Namespace,
+		"skip_paths", config.SkipPaths)
+
 	return func(c *gin.Context) {
 		// Skip certain paths
 		path := c.Request.URL.Path
 		if skipPathMap[path] {
+			logger.Debug("path skipped by filter",
+				"path", path)
 			c.Next()
 			return
 		}
@@ -95,6 +104,16 @@ func New(config Config) gin.HandlerFunc {
 			UserAgent:    c.Request.UserAgent(),
 			CustomLabels: config.CustomLabels,
 		}
+
+		logger.Debug("event created",
+			"service", serviceName,
+			"pod_id", podID,
+			"namespace", config.Namespace,
+			"url", path,
+			"route", c.FullPath(),
+			"method", c.Request.Method,
+			"status", c.Writer.Status(),
+			"duration_ms", duration.Milliseconds())
 
 		// Log event asynchronously (fire-and-forget)
 		config.Client.LogEvent(event)

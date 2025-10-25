@@ -33,6 +33,8 @@ spec:
           value: "${ENVIRONMENT}"
         - name: PORT
           value: "${HTTP_PORT}"
+        - name: PULSEURL_DEBUG
+          value: "${PULSEURL_DEBUG}"
         livenessProbe:
           httpGet:
             path: /health

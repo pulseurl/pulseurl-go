@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pulseurl/pulseurl-go/client"
@@ -16,10 +17,34 @@ func main() {
 		serviceURL = "pulseurl:9090"
 	}
 
+	// Get debug logging from environment
+	debugLogging := os.Getenv("PULSEURL_DEBUG") == "true"
+
+	// Parse sample rate from environment (default 1.0 = 100%)
+	sampleRate := 1.0
+	if sampleRateStr := os.Getenv("SAMPLE_RATE"); sampleRateStr != "" {
+		if parsed, err := strconv.ParseFloat(sampleRateStr, 64); err == nil {
+			sampleRate = parsed
+		} else {
+			log.Printf("Warning: Invalid SAMPLE_RATE '%s', using default 1.0", sampleRateStr)
+		}
+	}
+
+	// Parse buffer size from environment (default 1000)
+	bufferSize := 1000
+	if bufferSizeStr := os.Getenv("BUFFER_SIZE"); bufferSizeStr != "" {
+		if parsed, err := strconv.Atoi(bufferSizeStr); err == nil {
+			bufferSize = parsed
+		} else {
+			log.Printf("Warning: Invalid BUFFER_SIZE '%s', using default 1000", bufferSizeStr)
+		}
+	}
+
 	// Create PulseURL client
 	pulseClient, err := client.New(serviceURL, &client.Options{
-		BufferSize: 1000,
-		SampleRate: 1.0, // Log 100% of requests
+		BufferSize:   bufferSize,
+		SampleRate:   sampleRate,
+		DebugLogging: debugLogging,
 	})
 	if err != nil {
 		log.Fatalf("Failed to create PulseURL client: %v", err)
@@ -50,6 +75,7 @@ func main() {
 	// Add PulseURL middleware
 	router.Use(middleware.New(middleware.Config{
 		Client: pulseClient,
+		Logger: pulseClient.Logger(), // Use same logger as client for consistent log levels
 		SkipPaths: []string{
 			"/health",
 			"/ready",
@@ -126,6 +152,7 @@ func main() {
 	log.Printf("Starting %s on :%s", serviceName, port)
 	log.Printf("PulseURL service: %s", serviceURL)
 	log.Printf("Namespace: %s, Environment: %s", namespace, environment)
+	log.Printf("Client config: SampleRate=%.2f, BufferSize=%d, DebugLogging=%v", sampleRate, bufferSize, debugLogging)
 
 	if err := router.Run(":" + port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
