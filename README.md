@@ -6,6 +6,7 @@ Official Go client library and Gin middleware for [PulseURL](https://github.com/
 
 - **Async buffered gRPC client** - Non-blocking event logging with configurable buffer
 - **Gin middleware** - Drop-in middleware for Gin web framework
+- **API key authentication** - Optional authentication for secured PulseURL servers
 - **Automatic retries** - Configurable retry logic for failed requests
 - **Sampling support** - Control what percentage of requests to log
 - **Production ready** - Comprehensive tests, logging with `slog`, graceful shutdown
@@ -61,6 +62,8 @@ pulseClient, err := client.New("pulseurl:9090", &client.Options{
     Timeout:       2 * time.Second,
     SampleRate:    1.0,  // Log 100% of requests
     MaxRetries:    2,
+    DebugLogging:  false,
+    APIKey:        os.Getenv("PULSEURL_API_KEY"), // Optional authentication
 })
 
 // Configure middleware
@@ -98,8 +101,27 @@ type Options struct {
     Timeout       time.Duration   // gRPC timeout (default: 2s)
     SampleRate    float64         // Sample rate 0.0-1.0 (default: 1.0)
     MaxRetries    int             // Max retries (default: 2)
+    DebugLogging  bool            // Enable debug logging (default: false)
+    APIKey        string          // API key for authentication (default: "")
 }
 ```
+
+### Authentication
+
+If your PulseURL server has API key authentication enabled (via `PULSEURL_API_KEY` environment variable), you can configure the client to authenticate:
+
+```go
+// Option 1: Explicit API key
+client, err := client.New("pulseurl:9090", &client.Options{
+    APIKey: "your-secret-api-key",
+})
+
+// Option 2: Environment variable (automatic)
+// Set PULSEURL_API_KEY=your-secret-api-key in your environment
+client, err := client.New("pulseurl:9090", nil)
+```
+
+When an API key is configured, it's automatically sent as `x-api-key` metadata with every gRPC request. If no API key is set, authentication is disabled (backwards compatible with servers that don't require auth).
 
 ### Logging Events
 
@@ -198,9 +220,11 @@ NAMESPACE=dev ./manage.sh test
 
 ## Environment Variables
 
-The examples support these environment variables:
+The client and examples support these environment variables:
 
+- `PULSEURL_API_KEY` - API key for authentication (used by client automatically)
 - `PULSEURL_SERVICE` - PulseURL gRPC endpoint (default: `localhost:9090`)
+- `PULSEURL_DEBUG` - Enable debug logging (`true`/`false`)
 - `PORT` - HTTP server port (default: `8080`)
 - `SERVICE_NAME` - Service identifier
 - `NAMESPACE` - Deployment namespace

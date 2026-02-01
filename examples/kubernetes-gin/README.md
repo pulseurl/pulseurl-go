@@ -55,9 +55,23 @@ The `manage.sh` script follows the same pattern as the main pulseurl repository 
 - `IMAGE_NAME` - Docker image name (default: `pulseurl-go-example`)
 - `IMAGE_TAG` - Image tag (default: `latest`)
 - `PULSEURL_SERVICE` - PulseURL gRPC endpoint (default: `pulseurl:9090`)
+- `PULSEURL_API_KEY` - API key for authentication (optional, from secret)
+- `PULSEURL_DEBUG` - Enable debug logging (`true`/`false`)
 - `SERVICE_NAME` - Service identifier (default: `pulseurl-gin-example`)
 - `ENVIRONMENT` - Environment name (default: `production`)
 - `HTTP_PORT` - HTTP server port (default: `8080`)
+
+### Authentication
+
+If your PulseURL server requires API key authentication, create a secret with the API key:
+
+```bash
+kubectl create secret generic pulseurl-secrets \
+  --from-literal=api-key=your-secret-api-key \
+  -n <namespace>
+```
+
+The deployment automatically reads from this secret (optional - deployment works without it).
 
 ## Available Commands
 

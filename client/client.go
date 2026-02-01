@@ -11,6 +11,7 @@ import (
 	"github.com/pulseurl/pulseurl-go/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -23,6 +24,16 @@ type Client struct {
 	stopChan   chan struct{}
 	wg         sync.WaitGroup
 	logger     *slog.Logger
+}
+
+// apiKeyInterceptor creates a unary client interceptor that adds the API key
+// to outgoing gRPC calls as metadata.
+func apiKeyInterceptor(apiKey string) grpc.UnaryClientInterceptor {
+	return func(ctx context.Context, method string, req, reply any,
+		cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+		ctx = metadata.AppendToOutgoingContext(ctx, "x-api-key", apiKey)
+		return invoker(ctx, method, req, reply, cc, opts...)
+	}
 }
 
 // New creates a new PulseURL client
@@ -41,11 +52,16 @@ func New(serviceURL string, opts ...*Options) (*Client, error) {
 
 	options.applyDefaults()
 
-	// Create gRPC connection
-	conn, err := grpc.NewClient(
-		options.ServiceURL,
+	// Build gRPC dial options
+	dialOpts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	}
+	if options.APIKey != "" {
+		dialOpts = append(dialOpts, grpc.WithUnaryInterceptor(apiKeyInterceptor(options.APIKey)))
+	}
+
+	// Create gRPC connection
+	conn, err := grpc.NewClient(options.ServiceURL, dialOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to PulseURL service at %s: %w", options.ServiceURL, err)
 	}

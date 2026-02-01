@@ -152,7 +152,8 @@ func main() {
 	log.Printf("Starting %s on :%s", serviceName, port)
 	log.Printf("PulseURL service: %s", serviceURL)
 	log.Printf("Namespace: %s, Environment: %s", namespace, environment)
-	log.Printf("Client config: SampleRate=%.2f, BufferSize=%d, DebugLogging=%v", sampleRate, bufferSize, debugLogging)
+	log.Printf("Client config: SampleRate=%.2f, BufferSize=%d, DebugLogging=%v, APIKeySet=%v",
+		sampleRate, bufferSize, debugLogging, os.Getenv("PULSEURL_API_KEY") != "")
 
 	if err := router.Run(":" + port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)

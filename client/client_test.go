@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"log/slog"
+	"os"
 	"testing"
 	"time"
 
@@ -308,4 +309,67 @@ func TestLogEventSync(t *testing.T) {
 	if err == nil {
 		t.Log("Warning: Expected error due to no server, but got success")
 	}
+}
+
+func TestAPIKeyOption(t *testing.T) {
+	t.Run("APIKey can be set explicitly", func(t *testing.T) {
+		opts := &Options{
+			APIKey: "test-api-key",
+		}
+		opts.applyDefaults()
+
+		if opts.APIKey != "test-api-key" {
+			t.Errorf("Expected APIKey 'test-api-key', got '%s'", opts.APIKey)
+		}
+	})
+
+	t.Run("APIKey defaults to environment variable", func(t *testing.T) {
+		os.Setenv("PULSEURL_API_KEY", "env-api-key")
+		defer os.Unsetenv("PULSEURL_API_KEY")
+
+		opts := &Options{}
+		opts.applyDefaults()
+
+		if opts.APIKey != "env-api-key" {
+			t.Errorf("Expected APIKey 'env-api-key', got '%s'", opts.APIKey)
+		}
+	})
+
+	t.Run("explicit APIKey takes precedence over env var", func(t *testing.T) {
+		os.Setenv("PULSEURL_API_KEY", "env-api-key")
+		defer os.Unsetenv("PULSEURL_API_KEY")
+
+		opts := &Options{
+			APIKey: "explicit-key",
+		}
+		opts.applyDefaults()
+
+		if opts.APIKey != "explicit-key" {
+			t.Errorf("Expected APIKey 'explicit-key', got '%s'", opts.APIKey)
+		}
+	})
+
+	t.Run("empty APIKey when not set", func(t *testing.T) {
+		os.Unsetenv("PULSEURL_API_KEY")
+
+		opts := &Options{}
+		opts.applyDefaults()
+
+		if opts.APIKey != "" {
+			t.Errorf("Expected empty APIKey, got '%s'", opts.APIKey)
+		}
+	})
+}
+
+func TestNewClientWithAPIKey(t *testing.T) {
+	client, err := New("localhost:9999", &Options{
+		APIKey:     "test-api-key",
+		Timeout:    1 * time.Millisecond,
+		SampleRate: 1.0,
+		MaxRetries: 0,
+	})
+	if err != nil {
+		t.Fatalf("Failed to create client with API key: %v", err)
+	}
+	defer client.Close()
 }

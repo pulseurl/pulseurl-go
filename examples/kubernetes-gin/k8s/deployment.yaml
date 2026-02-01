@@ -35,6 +35,12 @@ spec:
           value: "${HTTP_PORT}"
         - name: PULSEURL_DEBUG
           value: "${PULSEURL_DEBUG}"
+        - name: PULSEURL_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: pulseurl-secrets
+              key: api-key
+              optional: true
         livenessProbe:
           httpGet:
             path: /health

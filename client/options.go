@@ -38,6 +38,11 @@ type Options struct {
 	// If true and Logger is nil, a debug-level logger will be created automatically.
 	// Default: false
 	DebugLogging bool
+
+	// APIKey for authentication with the PulseURL server.
+	// If empty, authentication is disabled (backwards compatible).
+	// Can also be set via PULSEURL_API_KEY environment variable.
+	APIKey string
 }
 
 // DefaultOptions returns options with sensible defaults
@@ -79,5 +84,8 @@ func (o *Options) applyDefaults() {
 	}
 	if o.MaxRetries == 0 {
 		o.MaxRetries = 2
+	}
+	if o.APIKey == "" {
+		o.APIKey = os.Getenv("PULSEURL_API_KEY")
 	}
 }
